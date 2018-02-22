@@ -1,0 +1,63 @@
+---
+ 
+- hosts: funny
+ 
+  tasks:
+ 
+   - name: Install nfs-kernel-server
+ 
+     apt: pkg=nfs-kernel-server state=installed update_cache=true
+ 
+     notify: Start nfs-kernel-server
+
+   - name: Crear dir compartido 
+
+     file: path=/compartido state=directory owner=nobody group=nogroup mode=0775
+
+   - name: Modificacion exports
+
+     become: true
+
+     lineinfile: dest=/etc/exports line="/compartido	192.168.88.0/24(rw,sync,no_root_squash,no_subtree_check)"
+
+   - name: Comando 
+
+     become: true
+
+     command: exportfs -a
+ 
+  handlers:
+ 
+    - name: Start nfs-kernel-server
+ 
+      service: name=nfs-kernel-server state=started
+
+- hosts: funnier
+ 
+  tasks:
+ 
+   - name: Install nfs-common
+ 
+     apt: pkg=nfs-common state=installed update_cache=true
+ 
+     notify: Start nfs-common
+
+   - name: Crear dir de montaje
+
+     become: true
+
+     file: path=/mnt/compartido state=directory mode=0775
+
+   - name: Montar 
+
+     become: true
+
+     lineinfile: dest=/etc/fstab line="192.168.88.10:/compartido	/compartido	nfs	auto,sync,rw	0	0"
+
+ 
+  handlers:
+ 
+    - name: Start nfs-common
+ 
+      service: name=nfs-common state=started
+
