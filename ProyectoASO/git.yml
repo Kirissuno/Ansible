@@ -1,0 +1,35 @@
+---
+ 
+- hosts: OP
+  gather_facts: no 
+  
+  pre_tasks:
+
+   - name: Instalar Python
+     apt: pkg=python-simplejson state=installed update_cache=true
+
+  tasks:
+
+   - name: Instalar Git 
+     apt: pkg=git state=installed update_cache=true 
+     notify: Start git
+
+   - name: Creación directorio git 
+     file: path=/proyecto state=directory mode=0775
+
+   - name: Clonar Git
+     become: true
+     command: git clone https://github.com/Kirissuno/Bangkok.git /proyecto
+
+   - name: Iniciar
+     become: true
+     command: git init /proyecto
+ 
+  handlers:
+ 
+    - name: Start git 
+      service: name=git state=started
+
+    - name: Comprobar directorio
+      command: ls /proyecto
+
